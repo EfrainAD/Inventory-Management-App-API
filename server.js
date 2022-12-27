@@ -2,6 +2,8 @@ const express = require('express')
 const cors = require('cors')
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
+const userRoutes = require('./routes/user-routes')
+
 const dotenv = require('dotenv').config()
 const PORT = process.env.PORT
 
@@ -10,6 +12,9 @@ const app = express()
 // Middleware
 app.use(express.json())
 app.use(bodyParser.json())
+
+// Routes Middleware
+app.use('/api/users', userRoutes)
 
 // Routes
 app.get('/', (req, res) => {
