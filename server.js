@@ -4,6 +4,7 @@ const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
 const userRoutes = require('./routes/user-routes')
 const errorHandler = require('./MiddleWare/error-middleware')
+const cookieParser = require('cookie-parser')
 
 const dotenv = require('dotenv').config()
 const PORT = process.env.PORT
@@ -12,6 +13,7 @@ const app = express()
 
 // Middleware
 app.use(express.json())
+app.use(cookieParser())
 app.use(bodyParser.json())
 
 // Routes Middleware
