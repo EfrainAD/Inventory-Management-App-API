@@ -3,6 +3,7 @@ const cors = require('cors')
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
 const userRoutes = require('./routes/user-routes')
+const errorHandler = require('./MiddleWare/error-middleware')
 
 const dotenv = require('dotenv').config()
 const PORT = process.env.PORT
@@ -20,6 +21,9 @@ app.use('/api/users', userRoutes)
 app.get('/', (req, res) => {
      res.send('Home Page')
 })
+
+// Middleware Error
+app.use(errorHandler)
 
 mongoose.connect(process.env.MONGO)
      .then(() => {
