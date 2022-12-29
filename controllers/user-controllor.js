@@ -109,10 +109,25 @@ const signOutUser = asyncHandler(async (req, res) => {
      })
      res.status(200).json({msg: 'Signed Out Successful'})
 })
+// Get User info
+const getUser = asyncHandler(async (req, res) => {
+     // const user = await User.findOne({_id: req.user.id})
+     const user = req.user
+     if (user) {
+          const {_id, name, email, photo, phone, bio} = user
 
+          res.status(201).json({
+               _id, name, email, photo, phone, bio
+          })
+     } else {
+          res.status(400)
+          throw new Error('User Not Found')
+     }
+})
 
 module.exports = {
      registerUser,
      signInUser,
-     signOutUser
+     signOutUser,
+     getUser,
 }
