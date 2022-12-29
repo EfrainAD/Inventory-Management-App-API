@@ -161,6 +161,43 @@ const updateUser = asyncHandler(async (req, res) => {
      }
 })
 
+const changePassword = asyncHandler(async (req, res) => {
+     const id =  req.user._id
+     const {old_password, new_password, comferm_password} = req.body
+     const user = await User.findOne({_id: id})
+
+     // Validation new password
+     if (!old_password || !new_password || !comferm_password) {
+          res.status(400)
+          throw new Error('You are missing fields')
+     }
+     if (new_password !== comferm_password) {
+          res.status(400)
+          throw new Error('Passwords and comform password do not match')
+     }
+     if (new_password.length < 8) {
+          res.status(400)
+          throw new Error('Password must be at least 8 characters long')
+     }
+     if (new_password.length >= 23) {
+          res.status(400)
+          throw new Error('Password must be shorter then 23 characters long')
+     }
+
+     // Validate if old password is correct
+     const isValidated = await bcrypt.compare(old_password, user.password)
+     if (!isValidated) {
+          res.status(404) 
+          throw new Error('wrong password')
+     }
+
+     // Update User Password with the new one.
+     user.password = new_password
+     await user.save()
+     
+     res.status(200).json({msg: 'Password Changed'})
+})
+
 module.exports = {
      registerUser,
      signInUser,
@@ -168,4 +205,5 @@ module.exports = {
      getUser,
      signInStatus,
      updateUser,
+     changePassword,
 }
