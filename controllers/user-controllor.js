@@ -136,10 +136,36 @@ const signInStatus = asyncHandler(async (req, res) => {
      return res.json(false)
 })
 
+// Update User 
+const updateUser = asyncHandler(async (req, res) => {
+     const id =  req.user._id
+     const userEmail = req.user.email
+     
+     if (req.body.email) {
+          req.body.email = userEmail
+     }
+
+     const updatedUser = await User.findOneAndUpdate(
+          {_id: id}, 
+          req.body, 
+          {new: true, runValidators: true}
+     )
+     
+     if (updatedUser){
+          const {_id, name, email, photo, phone, bio} = updatedUser
+
+          res.status(200).json({_id, name, email, photo, phone, bio})
+     } else {
+          res.status(404)
+          throw new Error('User not found')
+     }
+})
+
 module.exports = {
      registerUser,
      signInUser,
      signOutUser,
      getUser,
      signInStatus,
+     updateUser,
 }
