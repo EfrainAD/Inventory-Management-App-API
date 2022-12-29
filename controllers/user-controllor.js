@@ -62,8 +62,7 @@ const registerUser = asyncHandler(async (req, res) => {
           }
      }
 )
-
-// Sign In User
+// Sign In
 const signInUser = asyncHandler(async (req, res) => {
      const {email, password} = req.body
      
@@ -98,11 +97,22 @@ const signInUser = asyncHandler(async (req, res) => {
           res.status(400)
           throw new Error('user or password is invalid')
      }
-     
-     res.send('hi')
 })
+// Sign Out
+const signOutUser = asyncHandler(async (req, res) => {
+     res.cookie('token', '', {
+          path: '/',
+          httpOnly: true,
+          expires: new Date(0),
+          sameSite: 'none',
+          secure: true
+     })
+     res.status(200).json({msg: 'Signed Out Successful'})
+})
+
 
 module.exports = {
      registerUser,
      signInUser,
+     signOutUser
 }
