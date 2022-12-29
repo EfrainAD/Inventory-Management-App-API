@@ -103,7 +103,7 @@ const signOutUser = asyncHandler(async (req, res) => {
      res.cookie('token', '', {
           path: '/',
           httpOnly: true,
-          expires: new Date(0),
+          expires: new Date(0), 
           sameSite: 'none',
           secure: true
      })
@@ -125,9 +125,21 @@ const getUser = asyncHandler(async (req, res) => {
      }
 })
 
+const signInStatus = asyncHandler(async (req, res) => {
+     const token = req.cookies.token
+     if (!token) return res.json(false)
+     
+     const varifiy = jwt.verify(token, process.env.JWT_SECRET)
+     if (varifiy) {
+        return res.json(true)
+     }
+     return res.json(false)
+})
+
 module.exports = {
      registerUser,
      signInUser,
      signOutUser,
      getUser,
+     signInStatus,
 }
