@@ -1,6 +1,7 @@
 const asyncHandler = require('express-async-handler')
 const User = require('../models/user-model')
 const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs')
 
 const createToken = (id) => {
      return jwt.sign({id}, process.env.JWT_SECRET, {expiresIn: '1d'})
@@ -64,6 +65,40 @@ const registerUser = asyncHandler(async (req, res) => {
 
 // Sign In User
 const signInUser = asyncHandler(async (req, res) => {
+     const {email, password} = req.body
+     
+     if (!email || !password) {
+          res.status(400)
+          throw new Error('You need both email and passowrd')
+     }
+
+     const user = await User.findOne({email})
+     if (!user) {
+          res.status(400)
+          throw new Error('user or password is invalid')
+     }
+     const isPasswordCorrect = await bcrypt.compare(password, user.password)
+     if (user && isPasswordCorrect) {
+          const {_id, name, email, photo, phone, bio} = user
+
+          // Create cookie
+          const token = createToken(_id)
+          res.cookie('token', token, {
+               path: '/',
+               httpOnly: true,
+               expires: new Date(Date.now() + 1000 * 86400), // 1 Day
+               sameSite: 'none',
+               secure: true
+          })
+
+          res.status(200).json({
+               _id, token, name, email, photo, phone, bio
+          })
+     } else {
+          res.status(400)
+          throw new Error('user or password is invalid')
+     }
+     
      res.send('hi')
 })
 
