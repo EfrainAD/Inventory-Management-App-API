@@ -10,6 +10,7 @@ const sendEmail = require('../utils/sendEmail')
 const createToken = (id) => {
      return jwt.sign({id}, process.env.JWT_SECRET, {expiresIn: '1d'})
 }
+const createHashedToken = (token) => crypto.createHash('sha256').update(token).digest('hex')
 
 // Register User
 const registerUser = asyncHandler(async (req, res) => {
@@ -220,13 +221,13 @@ const forgotPassword = asyncHandler(async (req, res) => {
      // User can only have one Token, delete if they have one
      await Token.findOneAndDelete({userId: user._id})
 
-     // Create Token
+     // Create & Encrypt Token
      let resetToken = crypto.randomBytes(32).toString('hex') + user._id
-     const hashToken = crypto.createHash('sha256').update(resetToken).digest('hex')
+     const hashedToken = createHashedToken(resetToken)
      // save token
      await new Token({
           userId: user._id,
-          token: hashToken,
+          token: hashedToken,
           createdAt: Date.now(),
           expiresAt: Date.now() + minutesEmailExpires * (60 * 1000), // 30 min
      }).save()
@@ -257,6 +258,53 @@ const forgotPassword = asyncHandler(async (req, res) => {
           throw new Error('Failed to send a password reset email')
      }
 })
+const resetPassword = asyncHandler(async (req, res) => {
+     const {new_password, comfirm_password} = req.body
+     const {resetToken} = req.params
+     const hashedToken = createHashedToken(resetToken)
+
+     // Validation
+     if (!new_password, !comfirm_password) {
+          res.status(400)
+          throw new Error('All fields are requried')
+     }
+     if (new_password !== comfirm_password) {
+          res.status(400)
+          throw new Error('passwords don\'t match')
+     }
+     if (!resetToken) {
+          res.status(404)
+          throw new Error('Bad link')
+     }
+
+     // Get a validated user's token from DB   
+     const userToken = await Token.findOne({
+          token: hashedToken,
+          expiresAt: {$gt: Date.now()}
+     })
+     if (!userToken) {
+          res.status(404)
+          throw new Error('Token not found, maybe expired')
+     }
+
+     // Get User from Token's owner
+     const user = await User.findOne({_id: userToken.userId})
+     if (!user) {
+          res.status(404)
+          throw new Error('Error')
+     }
+
+     // Save new password
+     user.password = new_password
+     await user.save()
+
+     // Remove token so it can't be used again.
+     await Token.findOneAndDelete({userId: user._id})
+     
+     res.status(200).json({
+          msg: 'Password reset Sucessful'
+     })
+})
 module.exports = {
      registerUser,
      signInUser,
@@ -266,4 +314,5 @@ module.exports = {
      updateUser,
      changePassword,
      forgotPassword,
+     resetPassword,
 }
