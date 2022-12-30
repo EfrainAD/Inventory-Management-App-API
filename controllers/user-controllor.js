@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler')
 const User = require('../models/user-model')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
+const { findOne } = require('../models/user-model')
 
 const createToken = (id) => {
      return jwt.sign({id}, process.env.JWT_SECRET, {expiresIn: '1d'})
@@ -198,6 +199,18 @@ const changePassword = asyncHandler(async (req, res) => {
      res.status(200).json({msg: 'Password Changed'})
 })
 
+const forgotPassword = asyncHandler(async (req, res) => {
+     const email = req.body.email
+     const user = await findOne({email: email})
+     if (!user) {
+          res.status(400)
+          throw new Error('No user by that email')
+     }
+     const token = createToken(user.id)
+     // save token
+     // email token
+     
+})
 module.exports = {
      registerUser,
      signInUser,
@@ -206,4 +219,5 @@ module.exports = {
      signInStatus,
      updateUser,
      changePassword,
+     forgotPassword,
 }
