@@ -1,8 +1,11 @@
 const asyncHandler = require('express-async-handler')
 const User = require('../models/user-model')
+const Token = require('../models/token-model')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
+const crypto = require('crypto')
 const { findOne } = require('../models/user-model')
+const sendEmail = require('../utils/sendEmail')
 
 const createToken = (id) => {
      return jwt.sign({id}, process.env.JWT_SECRET, {expiresIn: '1d'})
@@ -200,16 +203,59 @@ const changePassword = asyncHandler(async (req, res) => {
 })
 
 const forgotPassword = asyncHandler(async (req, res) => {
-     const email = req.body.email
-     const user = await findOne({email: email})
+     const {email} = req.body
+     const user = await User.findOne({email: email})
+     const minutesEmailExpires = 30
+     
+     // Validates
+     if (!email) {
+          res.status(400)
+          throw new Error('Need User Email')
+     }
      if (!user) {
           res.status(400)
           throw new Error('No user by that email')
      }
-     const token = createToken(user.id)
+
+     // User can only have one Token, delete if they have one
+     await Token.findOneAndDelete({userId: user._id})
+
+     // Create Token
+     let resetToken = crypto.randomBytes(32).toString('hex') + user._id
+     const hashToken = crypto.createHash('sha256').update(resetToken).digest('hex')
      // save token
-     // email token
-     
+     await new Token({
+          userId: user._id,
+          token: hashToken,
+          createdAt: Date.now(),
+          expiresAt: Date.now() + minutesEmailExpires * (60 * 1000), // 30 min
+     }).save()
+
+     // Create the componenents for the reset email
+     const resetUrl = `${process.env.FRONT_PAGE_URL}/resetpassword/${resetToken}`
+     const message = `
+          <h2>hello ${user.name}</h2>
+          <p>You requested a password reset</p>
+          <p>Please use the url below to reset your password</p>
+          <p>This link is valid for only ${minutesEmailExpires} minutes.</p>
+
+          <a href="${resetUrl}" clicktracking="off">${resetUrl}</a>
+
+          <p>Regards...</p>
+          <p>Stock Management Team</p>
+     `
+     const subject = 'Reset Password Request'
+     const send_to = user.email
+     const sent_from = process.env.EMAIL_USER
+
+     // Send the reset Email
+     try {
+          await sendEmail(subject, message, send_to, sent_from)
+          res.status(200).json({sussess: true, msg: "Reset Email Sent"})
+     } catch (error) {
+          res.status(500)
+          throw new Error('Failed to send a password reset email')
+     }
 })
 module.exports = {
      registerUser,
