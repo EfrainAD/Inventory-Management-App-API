@@ -39,11 +39,11 @@ const productSchema = mongoose.Schema({
           trim: true,
      },
      image: {
-          type: String,
+          type: Object,
           default: {},
      },
 },{
-     timestamps: true
+     timestamps: true,
 })
 
 const Product = mongoose.model('Product', productSchema)
