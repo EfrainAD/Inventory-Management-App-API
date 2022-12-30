@@ -3,6 +3,7 @@ const cors = require('cors')
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
 const userRoutes = require('./routes/user-routes')
+const productRoutes = require('./routes/product-routes')
 const errorHandler = require('./MiddleWare/error-middleware')
 const cookieParser = require('cookie-parser')
 
@@ -18,6 +19,7 @@ app.use(bodyParser.json())
 
 // Routes Middleware
 app.use('/api/users', userRoutes)
+app.use('/api/products', productRoutes)
 
 // Routes
 app.get('/', (req, res) => {

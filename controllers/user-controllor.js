@@ -4,7 +4,6 @@ const Token = require('../models/token-model')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const crypto = require('crypto')
-const { findOne } = require('../models/user-model')
 const sendEmail = require('../utils/sendEmail')
 
 const createToken = (id) => {
