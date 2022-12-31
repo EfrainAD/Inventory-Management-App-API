@@ -2,6 +2,7 @@ const express = require('express')
 const cors = require('cors')
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
+const path = require('path')
 const userRoutes = require('./routes/user-routes')
 const productRoutes = require('./routes/product-routes')
 const errorHandler = require('./MiddleWare/error-middleware')
@@ -16,6 +17,8 @@ const app = express()
 app.use(express.json())
 app.use(cookieParser())
 app.use(bodyParser.json())
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
 // Routes Middleware
 app.use('/api/users', userRoutes)
