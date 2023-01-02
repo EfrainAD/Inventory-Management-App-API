@@ -61,7 +61,30 @@ const getProducts = asyncHandler(async (req, res) => {
      const products = await Product.find({user: userId}).sort('-createdAt')
      res.status(200).json(products)
 })
+const getAProduct = asyncHandler(async (req, res) => {
+     const userId = req.user._id
+     const productId = req.params.id
+     const product = await Product.find({user: userId, _id: productId})
+     if (product.length === 0) {
+          res.status(404)
+          throw new Error('Product not found, product does not exist or user does not have access.')
+     }
+     res.status(200).json(product)
+})
+const deleteProduct = asyncHandler(async (req, res) => {
+     const userId = req.user._id
+     const productId = req.params.id
+     const product = await Product.deleteOne({user: userId, _id: productId})
+     if (product.deletedCount === 0) {
+          res.status(404)
+          throw new Error('Product not found, product does not exist or user does not have access.')
+     }
+     res.status(200).json(product)
+})
+
 module.exports = {
      createProduct,
-     getProducts
+     getProducts,
+     getAProduct,
+     deleteProduct,
 }
