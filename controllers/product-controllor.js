@@ -4,6 +4,7 @@ const { fileSizeFormatter } = require('../utils/fileUploader')
 fileSizeFormatter
 const cloudinary = require('cloudinary').v2
 
+// POST
 const createProduct = asyncHandler(async (req, res) => {
      const userId = req.user._id
      const {name, sku, category, quantity, price, description} = req.body
@@ -56,11 +57,13 @@ const createProduct = asyncHandler(async (req, res) => {
 
      res.status(201).json(product)
 })
+// GET
 const getProducts = asyncHandler(async (req, res) => {
      const userId = req.user._id
      const products = await Product.find({user: userId}).sort('-createdAt')
      res.status(200).json(products)
 })
+// GET
 const getAProduct = asyncHandler(async (req, res) => {
      const userId = req.user._id
      const productId = req.params.id
@@ -71,11 +74,50 @@ const getAProduct = asyncHandler(async (req, res) => {
      }
      res.status(200).json(product)
 })
+// DELETE
 const deleteProduct = asyncHandler(async (req, res) => {
      const userId = req.user._id
      const productId = req.params.id
      const product = await Product.deleteOne({user: userId, _id: productId})
      if (product.deletedCount === 0) {
+          res.status(404)
+          throw new Error('Product not found, product does not exist or user does not have access.')
+     }
+     res.status(200).json(product)
+})
+// PATCH
+const updateProduct = asyncHandler(async (req, res) => {
+     const userId = req.user._id
+     const productId = req.params.id
+     
+     let fileData = {}
+     if (req.file) {
+          // Save Image to Cloudinary
+          let uploadedFile
+          try {
+               uploadedFile =  await cloudinary.uploader.upload(req.file.path, {
+                    folder: 'Inventory Management App',
+                    resource_type: 'image'
+               })
+          } catch (error) {
+               res.status(500)
+               throw new Error('Image failed to uploal.')
+          }
+
+          fileData = {
+               fileName: req.file.originalname,
+               filePath: uploadedFile.secure_url,
+               fileType: req.file.mimetype,
+               fileSize: fileSizeFormatter(req.file.size, 2),
+          }
+          req.body = {...req.body, image: fileData}
+     }
+
+     const product = await Product.findOneAndUpdate(
+          {_id: productId, user: userId}, 
+          req.body, 
+          {new: true, runValidators: true})
+     if (!product) {
           res.status(404)
           throw new Error('Product not found, product does not exist or user does not have access.')
      }
@@ -87,4 +129,5 @@ module.exports = {
      getProducts,
      getAProduct,
      deleteProduct,
+     updateProduct,
 }
