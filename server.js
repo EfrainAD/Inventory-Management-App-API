@@ -4,8 +4,11 @@ const cors = require('cors')
 const mongoose = require('mongoose')
 const bodyParser = require('body-parser')
 const path = require('path')
+//Roouters
 const userRoutes = require('./routes/user-routes')
 const productRoutes = require('./routes/product-routes')
+const contactRoutes = require('./routes/contact-routes')
+
 const errorHandler = require('./MiddleWare/error-middleware')
 const cookieParser = require('cookie-parser')
 const PORT = process.env.PORT || 8000
@@ -15,8 +18,8 @@ const app = express()
 // Middleware
 app.use(express.json())
 app.use(cookieParser())
-app.use(express.urlencoded({ extended: false }))
 app.use(bodyParser.json())
+app.use(express.urlencoded({ extended: false }))
 app.use(cors());
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
@@ -24,6 +27,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 // Routes Middleware
 app.use('/api/users', userRoutes)
 app.use('/api/products', productRoutes)
+app.use('/api/contactus', contactRoutes)
 
 // Routes
 app.get('/', (req, res) => {
