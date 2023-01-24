@@ -20,7 +20,10 @@ app.use(express.json())
 app.use(cookieParser())
 app.use(bodyParser.json())
 app.use(express.urlencoded({ extended: false }))
-app.use(cors());
+app.use(cors({
+     origin: ['http://localhost:3000', ],
+     credentials: true
+}));
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
@@ -31,7 +34,7 @@ app.use('/api/contactus', contactRoutes)
 
 // Routes
 app.get('/', (req, res) => {
-     res.send('Home Page')
+     res.send('<div style="height:100%;display:flex;justify-content:center;align-items:center;"><h1>This API is working!</h1></div>')
 })
 
 // Middleware Error
