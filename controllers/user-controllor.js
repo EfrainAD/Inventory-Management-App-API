@@ -5,6 +5,8 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const crypto = require('crypto')
 const sendEmail = require('../utils/sendEmail')
+const cloudinary = require('cloudinary').v2
+// require('../public/js/config');
 
 const createToken = (id) => {
      return jwt.sign({id}, process.env.JWT_SECRET, {expiresIn: '1d'})
@@ -139,14 +141,33 @@ const signInStatus = asyncHandler(async (req, res) => {
      }
      return res.json(false)
 })
-
+// Cloudinary Server-side function used to sign an Upload Widget upload.
+const signUploadCredentials = asyncHandler(async (req, res) => {
+     const timestamp = Math.round((new Date).getTime()/1000);
+     const apiSecret = cloudinary.config().api_secret;
+     api_key = cloudinary.config().api_key
+     try {
+          const signature = cloudinary.utils.api_sign_request({
+          timestamp: timestamp, folder: 'Inventory Management App', public_id: req.user._id}, apiSecret)
+          
+          res.status(200).json({ timestamp, signature, api_key })
+     } catch (error) {
+          res.status(400).json(error)
+          throw new Error('error: ', error)
+     }
+})
 // Update User 
 const updateUser = asyncHandler(async (req, res) => {
      const id =  req.user._id
      const userEmail = req.user.email
+     const imageFile = req.body?.image
      
+     // Security - Prevent tampering
      if (req.body.email) {
           req.body.email = userEmail
+     }
+     if (req.body._id) {
+          req.body._id = id
      }
 
      const updatedUser = await User.findOneAndUpdate(
@@ -314,4 +335,5 @@ module.exports = {
      changePassword,
      forgotPassword,
      resetPassword,
+     signUploadCredentials,
 }

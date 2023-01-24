@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 const express = require('express')
 const router = express.Router()
-const { registerUser, signInUser, signOutUser, getUser, signInStatus, updateUser, changePassword, forgotPassword, resetPassword } = require('../controllers/user-controllor')
+const { registerUser, signInUser, signOutUser, getUser, signInStatus, updateUser, changePassword, forgotPassword, resetPassword, signUploadCredentials } = require('../controllers/user-controllor')
 const protect = require('../MiddleWare/auth-middleware')
 const { Router } = require('express')
 
@@ -12,6 +12,7 @@ router.get('/signout', signOutUser)
 // User Profile
 router.get('/getuser', protect, getUser)
 router.patch('/updateuser', protect, updateUser)
+router.get('/cloudsignature', protect, signUploadCredentials) 
 // is user signed in - user status
 router.get('/signedin', signInStatus)
 // Making New Password
