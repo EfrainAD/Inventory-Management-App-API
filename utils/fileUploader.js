@@ -1,13 +1,18 @@
 const multer = require('multer')
+const STORAGE_MODE = process.env.STORAGE_MODE || "memory" // 'disk'
 
-const storage = multer.diskStorage({
-     destination: function (req, file, cb) {
-          cb(null, 'uploads')
-     },
-     filename: function (req, file, cd) {
-          cd(null, new Date().toISOString().replace(/:/g, '-') + '-' + file.originalname)
-     }
-})
+let storage
+if (STORAGE_MODE === 'memory')
+     storage = multer.memoryStorage()
+else if (STORAGE_MODE === 'disk')
+     storage = multer.diskStorage({
+          destination: function (req, file, cb) {
+               cb(null, 'uploads')
+          },
+          filename: function (req, file, cd) {
+               cd(null, new Date().toISOString().replace(/:/g, '-') + '-' + file.originalname)
+          }
+     })
 
 // Set what file formats can be saved.
 const fileFilter = (req, file, cb) => {
@@ -20,7 +25,6 @@ const fileFilter = (req, file, cb) => {
      } else {
           cb(null, false)
      }
-     
 }
 
 // File Size Formatter
