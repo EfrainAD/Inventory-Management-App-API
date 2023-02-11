@@ -4,6 +4,8 @@ const { fileSizeFormatter } = require('../utils/fileUploader')
 const uploadToCloudinary = require('../utils/uploadToCloudinary')
 fileSizeFormatter
 const cloudinary = require('cloudinary').v2
+// All images from this app to to this cloudinary folder
+const cloudinaryFolder = process.env.CLOUDINARY_FOLDER
 
 // POST
 const createProduct = asyncHandler(async (req, res) => {
@@ -61,11 +63,24 @@ const getAProduct = asyncHandler(async (req, res) => {
 const deleteProduct = asyncHandler(async (req, res) => {
      const userId = req.user._id
      const productId = req.params.id
-     const product = await Product.deleteOne({user: userId, _id: productId})
-     if (product.deletedCount === 0) {
+
+     const product = await Product.findOneAndDelete({user: userId, _id: productId}) 
+
+     if (product === null) {
           res.status(404)
           throw new Error('Product not found, product does not exist or user does not have access.')
      }
+     
+     // If the product has an image, delete it from cloudinary.
+     if (JSON.stringify(product.image) !== '{}') {
+          const publicID = `${cloudinaryFolder}/${product.sku}`
+          
+          const response = await cloudinary.uploader.destroy(publicID)
+          
+          if (response.result !==  'ok') 
+               console.log('Errer: Cloudinary API returned', response)
+     }
+     
      res.status(200).json(product)
 })
 // PATCH
