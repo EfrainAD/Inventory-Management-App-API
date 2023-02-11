@@ -22,7 +22,7 @@ app.use(cookieParser())
 app.use(bodyParser.json())
 app.use(express.urlencoded({ extended: false }))
 app.use(cors({
-     origin: [ frontPageUrl ],
+     origin: [ frontPageUrl , 'http://localhost:3000' ],
      credentials: true
 }))
 
