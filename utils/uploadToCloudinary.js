@@ -1,6 +1,7 @@
 const DatauriParser = require('datauri/parser');
 const cloudinary = require('cloudinary').v2
 const { fileSizeFormatter } = require('./fileUploader');
+const cloudinaryFolder = process.env.CLOUDINARY_FOLDER
 
 // Upload Image to Cloudinary from BUFFER
 const uploadToCloudinary = async (file, publicId) => {
@@ -14,7 +15,7 @@ const uploadToCloudinary = async (file, publicId) => {
      try {
           cloudinaryFile =  await cloudinary.uploader.upload(imageFile.content, {
                public_id: publicId,
-               folder: 'Inventory Management App',
+               folder: cloudinaryFolder,
                resource_type: 'image'
           })
      } catch (error) {
